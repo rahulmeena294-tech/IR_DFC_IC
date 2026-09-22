@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🚂 DFC/NWR Interchange Optimizer Pro — Universal Analytics Suite</title>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #111827;
+  --bg-tertiary: #1f2937;
+  --bg-card: rgba(17, 24, 39, 0.75);
+  --bg-glass: rgba(255, 255, 255, 0.05);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --text-primary: #ffffff;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
+  --accent-blue: #3b82f6;
+  --accent-purple: #8b5cf6;
+  --accent-green: #10b981;
+  --accent-orange: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-cyan: #06b6d4;
+  --accent-pink: #ec4899;
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  --gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.1);
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.2);
+  --shadow-lg: 0 20px 40px rgba(0,0,0,0.3);
+  --shadow-glow: 0 0 30px rgba(102, 126, 234, 0.3);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  background-image:
+    radial-gradient(at 20% 0%, rgba(102, 126, 234, 0.15) 0px, transparent 50%),
+    radial-gradient(at 80% 100%, rgba(118, 75, 162, 0.15) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(59, 130, 246, 0.05) 0px, transparent 50%);
+}
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #667eea, #764ba2); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #764ba2; }
+
+.app-container { display: flex; min-height: 100vh; }
+.sidebar {
+  width: 280px; background: rgba(17, 24, 39, 0.95);
+  backdrop-filter: blur(20px); border-right: 1px solid var(--border-color);
+  padding: 24px 16px; position: sticky; top: 0; height: 100vh;
+  overflow-y: auto; flex-shrink: 0;
+}
+.logo-section { display: flex; align-items: center; gap: 12px; padding: 0 8px 24px; border-bottom: 1px solid var(--border-color); margin-bottom: 24px; }
+.logo-icon {
+  width: 44px; height: 44px; background: var(--gradient-primary);
+  border-radius: 12px; display: flex; align-items: center; justify-content: center;
+  font-size: 22px; box-shadow: var(--shadow-glow);
+}
+.logo-text h1 { font-size: 14px; font-weight: 800; background: linear-gradient(135deg, #fff, #fbbf24); -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: -0.5px; }
+.logo-text p { font-size: 10px; color: var(--text-muted); margin-top: 2px; font-weight: 500; }
+.nav-menu { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.nav-item {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+  border-radius: 10px; color: var(--text-secondary); cursor: pointer;
+  transition: all 0.3s ease; font-size: 13px; font-weight: 500; border: 1px solid transparent;
+}
+.nav-item:hover { background: var(--bg-glass); color: var(--text-primary); transform: translateX(4px); }
+.nav-item.active { background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2)); color: var(--text-primary); border-color: rgba(102, 126, 234, 0.4); }
+.nav-item .icon { font-size: 18px; width: 24px; text-align: center; }
+.nav-item .badge { margin-left: auto; background: var(--accent-red); color: white; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
+
+.main-content { flex: 1; padding: 24px 32px; max-width: 100%; overflow-x: hidden; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 16px; }
+.page-title { font-size: 26px; font-weight: 800; letter-spacing: -1px; background: linear-gradient(135deg, #fff 0%, #c7d2fe 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.page-subtitle { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
+.header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.clock-badge {
+  background: var(--bg-glass); border: 1px solid var(--border-color);
+  padding: 8px 14px; border-radius: 30px; font-size: 11px;
+  color: var(--text-secondary); display: flex; align-items: center; gap: 8px; backdrop-filter: blur(10px);
+}
+.clock-badge .dot { width: 8px; height: 8px; background: var(--accent-green); border-radius: 50%; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } }
+
+.format-banner {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(139, 92, 246, 0.15));
+  border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 14px;
+  padding: 14px 18px; margin-bottom: 18px; display: flex;
+  justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+}
+.format-info { display: flex; align-items: center; gap: 12px; }
+.format-icon {
+  width: 40px; height: 40px; background: var(--gradient-primary);
+  border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px;
+}
+.format-text .ftitle { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.format-text .fdesc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.format-pill {
+  padding: 4px 12px; border-radius: 20px; font-size: 11px;
+  font-weight: 700; background: var(--gradient-primary); color: white; letter-spacing: 0.5px;
+}
+
+.toolbar {
+  background: var(--bg-card); backdrop-filter: blur(20px);
+  border: 1px solid var(--border-color); border-radius: 16px;
+  padding: 16px; margin-bottom: 20px;
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+}
+.toolbar-section { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.toolbar-divider { width: 1px; height: 30px; background: var(--border-color); margin: 0 4px; }
+.file-input-wrapper { position: relative; flex: 1; min-width: 220px; }
+.file-input-wrapper input[type="file"] { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; z-index: 2; }
+.file-input-display {
+  background: var(--bg-tertiary); border: 2px dashed rgba(102, 126, 234, 0.4);
+  padding: 12px 16px; border-radius: 12px; display: flex;
+  align-items: center; gap: 10px; color: var(--text-secondary); font-size: 13px; transition: all 0.3s;
+}
+.file-input-display:hover { border-color: rgba(102, 126, 234, 0.7); background: rgba(102, 126, 234, 0.05); }
+.file-input-display .icon { font-size: 18px; }
+.filter-select {
+  background: var(--bg-tertiary); border: 1px solid var(--border-color);
+  color: var(--text-primary); padding: 10px 14px; border-radius: 10px;
+  font-size: 12px; font-weight: 600; outline: none; cursor: pointer; font-family: inherit;
+}
+.search-bar {
+  background: var(--bg-tertiary); border: 1px solid var(--border-color);
+  border-radius: 10px; padding: 10px 14px; color: var(--text-primary);
+  font-size: 12px; outline: none; width: 200px; transition: all 0.3s; font-family: inherit;
+}
+.search-bar:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); width: 240px; }
+
+.btn {
+  padding: 10px 18px; border: none; border-radius: 10px;
+  font-weight: 600; font-size: 12px; cursor: pointer; transition: all 0.3s;
+  display: flex; align-items: center; gap: 6px; color: white; font-family: inherit;
+  position: relative; overflow: hidden;
+}
+.btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+.btn-primary { background: var(--gradient-primary); box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4); }
+.btn-success { background: var(--gradient-success); box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4); }
+.btn-warning { background: var(--gradient-warning); box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4); }
+.btn-secondary { background: var(--bg-tertiary); border: 1px solid var(--border-color); }
+
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.stat-card {
+  background: var(--bg-card); backdrop-filter: blur(20px);
+  border: 1px solid var(--border-color); border-radius: 16px;
+  padding: 18px; position: relative; overflow: hidden; transition: all 0.3s;
+}
+.stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--gradient-primary); }
+.stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: rgba(102, 126, 234, 0.3); }
+.stat-card.blue::before { background: linear-gradient(180deg, #3b82f6, #1e40af); }
+.stat-card.green::before { background: linear-gradient(180deg, #10b981, #047857); }
+.stat-card.orange::before { background: linear-gradient(180deg, #f59e0b, #b45309); }
+.stat-card.purple::before { background: linear-gradient(180deg, #8b5cf6, #6d28d9); }
+.stat-card.red::before { background: linear-gradient(180deg, #ef4444, #b91c1c); }
+.stat-card.cyan::before { background: linear-gradient(180deg, #06b6d4, #0e7490); }
+
+.stat-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; background: rgba(102, 126, 234, 0.15); }
+.stat-icon.green { background: rgba(16, 185, 129, 0.15); }
+.stat-icon.orange { background: rgba(245, 158, 11, 0.15); }
+.stat-icon.purple { background: rgba(139, 92, 246, 0.15); }
+.stat-icon.red { background: rgba(239, 68, 68, 0.15); }
+.stat-icon.cyan { background: rgba(6, 182, 212, 0.15); }
+.stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+.stat-value { font-size: 30px; font-weight: 800; color: var(--text-primary); line-height: 1; margin: 8px 0; letter-spacing: -1px; }
+.stat-meta { display: flex; gap: 10px; margin-top: 10px; font-size: 11px; color: var(--text-muted); flex-wrap: wrap; }
+.stat-meta-item strong { color: var(--text-primary); font-weight: 700; }
+.progress-bar { height: 5px; background: var(--bg-tertiary); border-radius: 10px; overflow: hidden; margin-top: 10px; }
+.progress-fill { height: 100%; background: var(--gradient-primary); border-radius: 10px; transition: width 1s ease; }
+
+.panel {
+  background: var(--bg-card); backdrop-filter: blur(20px);
+  border: 1px solid var(--border-color); border-radius: 16px;
+  padding: 22px; margin-bottom: 20px;
+}
+.panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+.panel-title { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 10px; color: var(--text-primary); }
+.panel-title-icon { width: 30px; height: 30px; background: var(--gradient-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+
+.modern-table-wrapper { overflow-x: auto; border-radius: 12px; background: rgba(15, 23, 42, 0.5); }
+.modern-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.modern-table thead th {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+  color: var(--text-primary); padding: 12px 10px; font-weight: 700; text-align: center;
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border-color); white-space: nowrap;
+}
+.modern-table tbody td { padding: 10px; text-align: center; color: var(--text-secondary); border-bottom: 1px solid rgba(255,255,255,0.05); }
+.modern-table tbody tr:hover td { background: rgba(102, 126, 234, 0.05); }
+.modern-table tbody tr.total-row td { background: rgba(102, 126, 234, 0.15); font-weight: 700; color: var(--text-primary); }
+.zone-pill { display: inline-block; padding: 4px 12px; background: rgba(102, 126, 234, 0.15); border-radius: 20px; color: #c7d2fe; font-weight: 600; font-size: 11px; }
+.text-positive { color: #10b981 !important; font-weight: 700; }
+.text-negative { color: #ef4444 !important; font-weight: 700; }
+.text-warning { color: #f59e0b !important; font-weight: 700; }
+.text-info { color: #06b6d4 !important; font-weight: 700; }
+
+.opportunity-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+.opp-card {
+  background: linear-gradient(135deg, rgba(17, 24, 39, 0.8), rgba(31, 41, 55, 0.6));
+  border: 1px solid var(--border-color); border-radius: 14px;
+  padding: 18px; transition: all 0.3s; position: relative; overflow: hidden;
+}
+.opp-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: var(--gradient-warning); }
+.opp-card.urgent::before { background: var(--gradient-danger); }
+.opp-card.high::before { background: var(--gradient-warning); }
+.opp-card.medium::before { background: linear-gradient(90deg, #3b82f6, #06b6d4); }
+.opp-card.low::before { background: var(--gradient-success); }
+.opp-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: rgba(245, 158, 11, 0.3); }
+.opp-zone-name { font-size: 14px; font-weight: 700; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+.priority-badge { padding: 3px 9px; border-radius: 20px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.priority-urgent { background: var(--gradient-danger); color: white; }
+.priority-high { background: var(--gradient-warning); color: white; }
+.priority-medium { background: linear-gradient(135deg, #3b82f6, #06b6d4); color: white; }
+.priority-low { background: var(--gradient-success); color: white; }
+.opp-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
+.metric-box { background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 10px; text-align: center; }
+.metric-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; font-weight: 600; letter-spacing: 0.5px; }
+.metric-value { font-size: 22px; font-weight: 800; color: var(--text-primary); line-height: 1; }
+.metric-comparison { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+.metric-comparison .positive { color: var(--accent-orange); font-weight: 700; }
+
+.chart-container { position: relative; height: 280px; margin-top: 14px; }
+.section-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 1024px) { .section-grid { grid-template-columns: 1fr; } .forecast-grid { grid-template-columns: 1fr; } }
+.forecast-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; }
+
+.pending-list-card { background: rgba(15, 23, 42, 0.5); border-radius: 12px; padding: 14px; margin-top: 12px; }
+.pending-list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
+.pending-list-title { font-size: 13px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+
+.empty-state { padding: 40px 20px; text-align: center; color: var(--text-muted); }
+.empty-state .icon { font-size: 48px; margin-bottom: 12px; opacity: 0.3; }
+.empty-state .title { font-size: 14px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+
+.loading-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(10, 14, 26, 0.85); backdrop-filter: blur(8px);
+  display: none; justify-content: center; align-items: center; z-index: 1000;
+}
+.loading-overlay.show { display: flex; }
+.spinner { width: 50px; height: 50px; border: 4px solid rgba(102, 126, 234, 0.2); border-top-color: #667eea; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { margin-top: 16px; color: var(--text-primary); font-weight: 600; font-size: 13px; }
+
+.toast-container { position: fixed; top: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  background: var(--bg-card); backdrop-filter: blur(20px);
+  border: 1px solid var(--border-color); border-radius: 10px;
+  padding: 12px 16px; display: flex; align-items: center; gap: 10px;
+  min-width: 260px; box-shadow: var(--shadow-lg); animation: slideInRight 0.3s ease;
+  color: var(--text-primary); font-size: 12px;
+}
+.toast.success { border-left: 3px solid var(--accent-green); }
+.toast.error { border-left: 3px solid var(--accent-red); }
+.toast.warning { border-left: 3px solid var(--accent-orange); }
+.toast.info { border-left: 3px solid var(--accent-blue); }
+@keyframes slideInRight { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+.mobile-toggle {
+  display: none; background: var(--bg-tertiary);
+  border: 1px solid var(--border-color); padding: 8px 12px;
+  border-radius: 8px; cursor: pointer; color: white; font-size: 16px;
+}
+@media (max-width: 768px) {
+  .app-container { flex-direction: column; }
+  .sidebar { width: 100%; height: auto; position: relative; display: none; }
+  .sidebar.show { display: block; }
+  .main-content { padding: 14px; }
+  .mobile-toggle { display: block; }
+  .page-title { font-size: 20px; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .opportunity-grid { grid-template-columns: 1fr; }
+  .forecast-grid { grid-template-columns: 1fr; }
+}
+
+.debug-log {
+  background: rgba(0,0,0,0.4); border: 1px solid var(--border-color);
+  border-radius: 10px; padding: 10px 14px; margin-top: 16px;
+  max-height: 140px; overflow-y: auto; font-family: 'Courier New', monospace;
+  font-size: 11px; color: #4ade80;
+}
+.debug-log .log-line { padding: 2px 0; border-bottom: 1px solid rgba(74, 222, 128, 0.1); }
+
+.fab {
+  position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px;
+  border-radius: 50%; background: var(--gradient-primary); color: white;
+  border: none; cursor: pointer; box-shadow: var(--shadow-glow);
+  display: flex; align-items: center; justify-content: center; font-size: 20px;
+  transition: all 0.3s; z-index: 100;
+}
+.fab:hover { transform: scale(1.1) rotate(15deg); }
+
+.tabs { display: flex; gap: 6px; background: var(--bg-tertiary); padding: 4px; border-radius: 10px; margin-bottom: 12px; }
+.tab { padding: 6px 14px; border-radius: 6px; color: var(--text-muted); cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.3s; }
+.tab.active { background: var(--gradient-primary); color: white; }
+.filter-chip { padding: 5px 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 16px; font-size: 11px; color: var(--text-secondary); cursor: pointer; transition: all 0.3s; }
+.filter-chip:hover { border-color: var(--accent-blue); color: var(--text-primary); }
+.filter-chip.active { background: var(--gradient-primary); color: white; border-color: transparent; }
+
+.insight-card {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(139, 92, 246, 0.1));
+  border: 1px solid rgba(102, 126, 234, 0.2); border-radius: 12px;
+  padding: 14px 18px; margin-bottom: 10px;
+}
+.insight-title { font-size: 12px; font-weight: 700; color: #c7d2fe; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.insight-text { color: var(--text-secondary); font-size: 12px; line-height: 1.6; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.fade-in { animation: fadeIn 0.6s ease forwards; }
+.delay-1 { animation-delay: 0.1s; opacity: 0; }
+.delay-2 { animation-delay: 0.2s; opacity: 0; }
+.delay-3 { animation-delay: 0.3s; opacity: 0; }
+.delay-4 { animation-delay: 0.4s; opacity: 0; }
+</style>
+</head>
+<body>
+<div class="app-container">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo-section">
+      <div class="logo-icon">🚂</div>
+      <div class="logo-text">
+        <h1>DFC/NWR OPTIMIZER</h1>
+        <p>Universal Analytics v3.0</p>
+      </div>
+    </div>
+    <ul class="nav-menu">
+      <li class="nav-item active" onclick="scrollToSection('dashboard')"><span class="icon">📊</span><span>Dashboard</span></li>
+      <li class="nav-item" onclick="scrollToSection('forecast')"><span class="icon">📈</span><span>Forecast Summary</span></li>
+      <li class="nav-item" onclick="scrollToSection('opportunities')"><span class="icon">⚡</span><span>Opportunities</span><span class="badge" id="navOppCount">0</span></li>
+      <li class="nav-item" onclick="scrollToSection('aiInsights')"><span class="icon"> </span><span>AI Insights</span></li>
+      <li class="nav-item" onclick="scrollToSection('zones')"><span class="icon">📋</span><span>Zone Analysis</span></li>
+      <li class="nav-item" onclick="scrollToSection('pending')"><span class="icon">⏳</span><span>Pending Trains</span><span class="badge" id="navPendingCount">0</span></li>
+      <li class="nav-item" onclick="scrollToSection('export')"><span class="icon">📤</span><span>Export Reports</span></li>
+      <li class="nav-item" onclick="resetAll()"><span class="icon">🔄</span><span>Reset</span></li>
+    </ul>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main-content">
+
+    <!-- HEADER -->
+    <div class="page-header">
+      <div>
+        <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+        <h2 class="page-title">📊 Universal Dashboard</h2>
+        <p class="page-subtitle">Auto-detects NWR (ZN-STTN) / DFC (DVSN-STTN) / Generic CSV formats</p>
+      </div>
+      <div class="header-actions">
+        <div class="clock-badge"><span class="dot"></span><span id="liveDateTime">--</span></div>
+      </div>
+    </div>
+
+    <!-- FORMAT BANNER -->
+    <div class="format-banner" id="formatBanner" style="display:none;">
+      <div class="format-info">
+        <div class="format-icon" id="formatIcon">📄</div>
+        <div class="format-text">
+          <div class="ftitle" id="formatTitle">--</div>
+          <div class="fdesc" id="formatDesc">--</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <span class="format-pill" id="formatPill">--</span>
+      </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <div class="file-input-wrapper">
+        <input type="file" id="csvFile" accept=".csv,.xlsx,.xls">
+        <div class="file-input-display">
+          <span class="icon">📁</span>
+          <span id="fileName">Choose CSV or Excel file...</span>
+        </div>
+      </div>
+      <select class="filter-select" id="filterInterchange" onchange="applyFilters()">
+        <option value="ALL">All Interchanges</option>
+      </select>
+      <select class="filter-select" id="filterDirection" onchange="applyFilters()">
+        <option value="ALL">All Directions</option>
+        <option value="UP">UP (Taken Over)</option>
+        <option value="DN">DN (Handed Over)</option>
+      </select>
+      <input type="text" class="search-bar" id="searchBox" placeholder="  Loco/Station..." onkeyup="applyFilters()">
+      <div class="toolbar-divider"></div>
+      <button class="btn btn-primary" onclick="processFile()"><span>📊</span>Analyze</button>
+      <button class="btn btn-success" onclick="exportExcel()"><span>📤</span>Export</button>
+      <button class="btn btn-secondary" onclick="loadNWRSample()"><span>🚆</span>NWR Sample</button>
+      <button class="btn btn-secondary" onclick="loadDFCSample()"><span>🚄</span>DFC Sample</button>
+      <button class="btn btn-secondary" onclick="resetAll()"><span>🔄</span>Reset</button>
+    </div>
+
+    <!-- STATS CARDS -->
+    <div id="forecastStats" class="stats-grid" style="display:none;"></div>
+
+    <!-- FORECAST SECTION -->
+    <div id="forecastSection" class="panel section" style="display:none;">
+      <div class="panel-header">
+        <div class="panel-title"><span class="panel-title-icon">📈</span>Zone-wise Forecast Summary</div>
+        <input type="text" class="search-bar" placeholder="Search zone..." id="zoneSearch" onkeyup="filterTable()">
+      </div>
+      <div class="forecast-grid">
+        <div class="modern-table-wrapper">
+          <table class="modern-table" id="forecastTable">
+            <thead>
+              <tr>
+                <th>ZONE</th>
+                <th>T/O PASSED ↓</th>
+                <th>H/O PASSED ↑</th>
+                <th>NET VARIATION</th>
+                <th>EFFICIENCY</th>
+                <th>STATUS</th>
+              </tr>
+            </thead>
+            <tbody id="forecastTableBody"></tbody>
+          </table>
+        </div>
+        <div><div class="chart-container"><canvas id="forecastChart"></canvas></div></div>
+      </div>
+    </div>
+
+    <!-- OPPORTUNITIES -->
+    <div id="opportunitySection" class="panel section" style="display:none;">
+      <div class="panel-header">
+        <div class="panel-title"><span class="panel-title-icon">⚡</span>Optimization Opportunities</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="filter-chip active" onclick="filterOpportunities('all', this)">All</span>
+          <span class="filter-chip" onclick="filterOpportunities('URGENT', this)">🚨 Urgent</span>
+          <span class="filter-chip" onclick="filterOpportunities('HIGH', this)">⚠️ High</span>
+          <span class="filter-chip" onclick="filterOpportunities('MEDIUM', this)">📊 Medium</span>
+        </div>
+      </div>
+      <div id="opportunityGrid" class="opportunity-grid"></div>
+    </div>
+
+    <!-- AI INSIGHTS -->
+    <div id="aiSummary" class="panel section" style="display:none;"></div>
+
+    <!-- ZONE ANALYSIS -->
+    <div id="zoneAnalysisSection" class="panel section" style="display:none;">
+      <div class="panel-header">
+        <div class="panel-title"><span class="panel-title-icon">📋</span>Detailed Zone Analysis</div>
+        <div class="tabs">
+          <div class="tab active" onclick="switchTableTab('all')">All Zones</div>
+          <div class="tab" onclick="switchTableTab('taken')">Taken Over</div>
+          <div class="tab" onclick="switchTableTab('hand')">Handed Over</div>
+        </div>
+      </div>
+      <div class="chart-container" style="height:200px;"><canvas id="zoneChart"></canvas></div>
+      <div class="modern-table-wrapper" id="tableWrapper" style="margin-top:16px;"></div>
+    </div>
+
+    <!-- PENDING TRAINS -->
+    <div id="pendingTrainsContainer" class="panel section" style="display:none;">
+      <div class="panel-header">
+        <div class="panel-title"><span class="panel-title-icon">⏳</span>Pending Trains (IC=N)</div>
+      </div>
+      <div id="overallStats" class="stats-grid" style="margin-bottom:16px;"></div>
+      <div class="section-grid">
+        <div class="pending-list-card">
+          <div class="pending-list-header">
+            <div class="pending-list-title"><span>🚆</span> Taken Over - Pending</div>
+            <span class="priority-badge priority-medium" id="takenPendingCount">0</span>
+          </div>
+          <div id="takenPendingTable"></div>
+        </div>
+        <div class="pending-list-card">
+          <div class="pending-list-header">
+            <div class="pending-list-title"><span>🚆</span> Handed Over - Pending</div>
+            <span class="priority-badge priority-medium" id="handPendingCount">0</span>
+          </div>
+          <div id="handPendingTable"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXPORT -->
+    <div id="exportSection" class="panel section">
+      <div class="panel-header">
+        <div class="panel-title"><span class="panel-title-icon">📤</span>Export & Reports</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;">
+        <button class="btn btn-success" onclick="exportExcel()"><span>📊</span>Full Report (XLSX)</button>
+        <button class="btn btn-primary" onclick="exportCSV()"><span>📄</span>Export CSV</button>
+        <button class="btn btn-warning" onclick="window.print()"><span>🖨️</span>Print</button>
+      </div>
+    </div>
+
+    <!-- DEBUG -->
+    <div class="debug-log" id="debug">
+      <div class="log-line">✅ Universal DFC/NWR Interchange Optimizer v3.0 ready.</div>
+      <div class="log-line">📌 Auto-detects: NWR (ZN-STTN) / DFC (DVSN-STTN) / Generic CSV</div>
+    </div>
+  </main>
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loading">
+  <div style="text-align:center;">
+    <div class="spinner"></div>
+    <div class="loading-text">Processing data...</div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- FAB -->
+<button class="fab" onclick="scrollToSection('dashboard')" title="Top">↑</button>
+
+<script>
+/* ========================================================
+   GLOBAL STATE
+======================================================== */
+let allTrains = [];        // Master records (used by DFC)
+let finalSummary = {};     // { zone: { takenTotal, takenPassed, takenPending, handTotal, handPassed, handPending, parentZone } }
+let pendingTakenTrainsGlobal = [];
+let pendingHandTrainsGlobal = [];
+let avgTrainData = {};
+let allOpportunities = [];
+let zoneSummary = {};
+let forecastChartInstance = null;
+let zoneChartInstance = null;
+let detectedFormat = 'NONE';
+let chartCombinedInstance = null;
+let chartTakenInstance = null;
+let chartHandedInstance = null;
+
+/* ========================================================
+   CONFIG — DFC TARGETS & NWR AVG DATA
+======================================================== */
+const TARGET_INTERCHANGES = ['DLI-AST', 'DLI-PRLN', 'EDFC-DERN', 'PRYJ-DER'];
+const DFC_AVG = {
+  'DLI-AST':   { to: 12, ho: 10 },
+  'DLI-PRLN':  { to: 8,  ho: 6  },
+  'EDFC-DERN': { to: 15, ho: 12 },
+  'PRYJ-DER':  { to: 10, ho: 8  }
+};
+const ZONE_MAPPING = {
+  'DFCR':'DFCR','NCR':'NCR','NR':'NR','WCR':'WCR','WR':'WR',
+  'DFCR-BNGM':'DFCR','DFCR-FL':'DFCR','DFCR-GEK':'DFCR','DFCR-HDA':'DFCR',
+  'DFCR-KGBS':'DFCR','DFCR-KRJD':'DFCR','DFCR-KTWS':'DFCR','DFCR-MJ':'DFCR',
+  'DFCR-PCMK':'DFCR','NC-AWR':'NCR','NC-BKI':'NCR','NR-BTI':'NR',
+  'NR-DBHL':'NR','NR-HNS':'NR','NR-HSR':'NR','NR-KZW':'NR',
+  'NR-RE':'NR','NR-STD':'NR','WC-GGC':'WCR','WC-SWM':'WCR',
+  'WR-BEC':'WR','WR-BLDI':'WR','WR-CNA':'WR','WR-HMT':'WR','WR-PNU':'WR'
+};
+
+function loadAvgTrainData() {
+  const data = [
+    ["DFCR-BNGM",3.2,2.5],["DFCR-FL",8.9,6],["DFCR-GEK",1.8,1],["DFCR-HDA",1,4.5],
+    ["DFCR-KGBS",20,21],["DFCR-KRJD",2,2.7],["DFCR-KTWS",14,12.6],["DFCR-MJ",3,5.8],
+    ["DFCR-PCMK",6.5,6.8],["NC-AWR",2,4.2],["NC-BKI",7,8.2],["NR-BTI",2.5,3.5],
+    ["NR-DBHL",6.5,10],["NR-HNS",3,5.5],["NR-HSR",6,6],["NR-KZW",9.5,8.5],
+    ["NR-RE",12,15],["NR-STD",6,6],["WC-GGC",2.5,4],["WC-SWM",3.5,4],
+    ["WR-BEC",3,3.8],["WR-BLDI",7.5,8.2],["WR-CNA",7.5,4.6],["WR-HMT",1.5,1.5],["WR-PNU",2.5,2.6]
+  ];
+  data.forEach(r => {
+    avgTrainData[String(r[0]).trim().toUpperCase()] = {
+      takenAvg: parseFloat(r[1])||0,
+      handAvg: parseFloat(r[2])||0
+    };
+  });
+}
+
+/* ========================================================
+   UTILITIES
+======================================================== */
+function debug(msg) {
+  const d = document.getElementById('debug');
+  const ts = new Date().toLocaleTimeString();
+  const line = document.createElement('div');
+  line.className = 'log-line';
+  line.textContent = `[${ts}] ${msg}`;
+  d.insertBefore(line, d.firstChild);
+  if (d.children.length > 40) d.removeChild(d.lastChild);
+}
+function showToast(msg, type='info') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  const ic = {success:'✅',error:'❌',warning:' ️',info:'ℹ️'};
+  t.innerHTML = `<span>${ic[type]||'ℹ️'}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(()=>{t.style.animation='slideInRight 0.3s ease reverse';setTimeout(()=>t.remove(),300);},3500);
+}
+function updateLiveDateTime() {
+  const n = new Date();
+  const d = n.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  const t = n.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('liveDateTime').textContent = `${d} • ${t}`;
+}
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('show'); }
+function cleanYesNo(v) {
+  const s = String(v||'').trim().toUpperCase();
+  return (s==='Y'||s==='YES')?'Y':(s==='N'||s==='NO')?'N':'';
+}
+
+/* ========================================================
+   FORMAT DETECTION
+======================================================== */
+function detectFormat(headers) {
+  const up = headers.map(h => String(h||'').trim().toUpperCase());
+  if (up.includes('ZN-STTN')) return 'NWR';
+  if (up.includes('DVSN-STTN')) return 'DFC';
+  // Try to detect by column count / patterns
+  if (up.includes('SR NO')) return 'GENERIC';
+  return 'UNKNOWN';
+}
+
+function showFormatBanner(format, extra='') {
+  const banner = document.getElementById('formatBanner');
+  banner.style.display = 'flex';
+  detectedFormat = format;
+  if (format === 'NWR') {
+    document.getElementById('formatIcon').textContent = '🚆';
+    document.getElementById('formatTitle').textContent = 'NWR Format Detected';
+    document.getElementById('formatDesc').textContent = `Using ZN-STTN column • ${extra}`;
+    document.getElementById('formatPill').textContent = 'NWR';
+  } else if (format === 'DFC') {
+    document.getElementById('formatIcon').textContent = '🚄';
+    document.getElementById('formatTitle').textContent = 'DFC Format Detected';
+    document.getElementById('formatDesc').textContent = `DVSN-STTN at index 26 • 4 targets: DLI-AST, DLI-PRLN, EDFC-DERN, PRYJ-DER • ${extra}`;
+    document.getElementById('formatPill').textContent = 'DFC';
+  } else if (format === 'GENERIC') {
+    document.getElementById('formatIcon').textContent = '📋';
+    document.getElementById('formatTitle').textContent = 'Generic CSV Detected';
+    document.getElementById('formatDesc').textContent = 'Using header-based column detection';
+    document.getElementById('formatPill').textContent = 'GENERIC';
+  } else {
+    document.getElementById('formatIcon').textContent = '❓';
+    document.getElementById('formatTitle').textContent = 'Unknown Format';
+    document.getElementById('formatDesc').textContent = 'Please verify your CSV headers';
+    document.getElementById('formatPill').textContent = 'UNKNOWN';
+  }
+}
+
+/* ========================================================
+   FILE LOADING
+======================================================== */
+document.getElementById('csvFile').addEventListener('change', function(e) {
+  const f = e.target.files[0];
+  if (f) document.getElementById('fileName').textContent = `📄 ${f.name} (${(f.size/1024).toFixed(1)} KB)`;
+});
+
+function processFile() {
+  const file = document.getElementById('csvFile').files[0];
+  if (!file) { showToast('Please select a file first', 'warning'); return; }
+  document.getElementById('loading').classList.add('show');
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (ext === 'csv') processCSV(file);
+  else if (ext === 'xlsx' || ext === 'xls') processExcel(file);
+  else { showToast('Upload CSV or Excel', 'error'); document.getElementById('loading').classList.remove('show'); }
+}
+function processCSV(file) {
+  Papa.parse(file, { header:false, skipEmptyLines:true, complete: r => processData(r.data), error: e => { debug('❌ '+e.message); document.getElementById('loading').classList.remove('show'); showToast('CSV parse error','error'); } });
+}
+function processExcel(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const data = new Uint8Array(e.target.result);
+    const wb = XLSX.read(data, {type:'array'});
+    const sh = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sh, {header:1, defval:''});
+    processData(rows);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+/* ========================================================
+   MAIN PROCESSING (auto-routes by format)
+======================================================== */
+function processData(data) {
+  try {
+    if (!data || data.length === 0) { showToast('Empty file','warning'); document.getElementById('loading').classList.remove('show'); return; }
+    debug(`📊 Processing ${data.length} rows...`);
+
+    // Find header row (look for known columns)
+    let headerRowIdx = -1;
+    for (let i = 0; i < Math.min(data.length, 100); i++) {
+      const r = data[i].map(c => String(c||'').trim().toUpperCase());
+      if (r.includes('ZN-STTN') || r.includes('DVSN-STTN') || r.includes('SR NO')) { headerRowIdx = i; break; }
+    }
+    if (headerRowIdx === -1) {
+      // Treat first row as header anyway
+      headerRowIdx = 0;
+    }
+
+    const headers = data[headerRowIdx].map(h => String(h||'').trim().toUpperCase());
+    const format = detectFormat(headers);
+    debug(`🔍 Detected format: ${format}`);
+    showFormatBanner(format, `${data.length - headerRowIdx - 1} data rows`);
+
+    // Reset state
+    finalSummary = {};
+    pendingTakenTrainsGlobal = [];
+    pendingHandTrainsGlobal = [];
+    allTrains = [];
+    zoneSummary = {};
+
+    if (format === 'DFC') {
+      processDFC(data.slice(headerRowIdx + 1));
+    } else if (format === 'NWR') {
+      processNWR(data, headerRowIdx, headers);
+    } else {
+      processGeneric(data.slice(headerRowIdx + 1), headers);
+    }
+
+    // Populate filter dropdown
+    populateInterchangeFilter();
+
+    renderAll();
+    document.getElementById('loading').classList.remove('show');
+    showToast(`✅ ${format} analysis complete!`, 'success');
+  } catch (err) {
+    debug('❌ '+err.message);
+    document.getElementById('loading').classList.remove('show');
+    showToast('Processing error: '+err.message, 'error');
+  }
+}
+
+/* ===== DFC PROCESSOR ===== */
+function processDFC(rows) {
+  debug(`  Processing DFC: ${rows.length} rows`);
+  let matched = 0;
+  rows.forEach(row => {
+    while (row.length < 53) row.push('');
+    const dvsn = String(row[26]||'').trim();
+    if (!TARGET_INTERCHANGES.includes(dvsn)) return;
+    matched++;
+
+    const zone = dvsn, parentZone = dvsn;
+    if (!finalSummary[zone]) finalSummary[zone] = {takenTotal:0,takenPassed:0,takenPending:0,handTotal:0,handPassed:0,handPending:0,parentZone};
+    if (!zoneSummary[parentZone]) zoneSummary[parentZone] = {takenTotal:0,takenPassed:0,takenPending:0,handTotal:0,handPassed:0,handPending:0};
+
+    // UP (TAKEN OVER)
+    if (String(row[0]||'').trim() !== '') {
+      const ic = cleanYesNo(row[24]);
+      const fc = cleanYesNo(row[23]);
+      finalSummary[zone].takenTotal++;
+      zoneSummary[parentZone].takenTotal++;
+      const trainRec = {
+        zone, parentZone, direction:'UP', type:'TAKEN OVER',
+        srNo: String(row[0]).trim(),
+        stationFrom: String(row[2]||'').trim(),
+        stationTo: String(row[3]||'').trim(),
+        locoNo: String(row[13]||'').trim(),
+        loadLocn: String(row[20]||'').trim(),
+        stts: String(row[21]||'').trim(),
+        fc, ic, status: ic==='Y'?'passed':'pending'
+      };
+      allTrains.push(trainRec);
+      if (ic === 'Y') { finalSummary[zone].takenPassed++; zoneSummary[parentZone].takenPassed++; }
+      else { finalSummary[zone].takenPending++; zoneSummary[parentZone].takenPending++; pendingTakenTrainsGlobal.push(trainRec); }
+    }
+    // DN (HANDED OVER)
+    if (String(row[28]||'').trim() !== '') {
+      const ic = cleanYesNo(row[52]);
+      const fc = cleanYesNo(row[51]);
+      finalSummary[zone].handTotal++;
+      zoneSummary[parentZone].handTotal++;
+      const trainRec = {
+        zone, parentZone, direction:'DN', type:'HANDED OVER',
+        srNo: String(row[28]).trim(),
+        stationFrom: String(row[30]||'').trim(),
+        stationTo: String(row[31]||'').trim(),
+        locoNo: String(row[41]||'').trim(),
+        loadLocn: String(row[48]||'').trim(),
+        stts: String(row[49]||'').trim(),
+        fc, ic, status: ic==='Y'?'passed':'pending'
+      };
+      allTrains.push(trainRec);
+      if (ic === 'Y') { finalSummary[zone].handPassed++; zoneSummary[parentZone].handPassed++; }
+      else { finalSummary[zone].handPending++; zoneSummary[parentZone].handPending++; pendingHandTrainsGlobal.push(trainRec); }
+    }
+  });
+  debug(`✅ DFC: matched ${matched} rows, ${allTrains.length} trains`);
+}
+
+/* ===== NWR PROCESSOR ===== */
+function processNWR(data, headerIdx, headers) {
+  const rows = data.slice(headerIdx + 1);
+  debug(`🚆 Processing NWR: ${rows.length} rows`);
+  const znIdx = headers.indexOf('ZN-STTN');
+  rows.forEach(row => {
+    if (!row || row.length === 0) return;
+    let zn = String(row[znIdx]||'').trim().toUpperCase();
+    if (!zn) return;
+    const parentZone = ZONE_MAPPING[zn] || zn;
+    if (!finalSummary[zn]) finalSummary[zn] = {takenTotal:0,takenPassed:0,takenPending:0,handTotal:0,handPassed:0,handPending:0,parentZone};
+    if (!zoneSummary[parentZone]) zoneSummary[parentZone] = {takenTotal:0,takenPassed:0,takenPending:0,handTotal:0,handPassed:0,handPending:0};
+
+    if (String(row[0]||'').trim() !== '') {
+      const ic = cleanYesNo(row[17]);
+      finalSummary[zn].takenTotal++;
+      zoneSummary[parentZone].takenTotal++;
+      const rec = {
+        zone:zn, parentZone, direction:'UP', type:'TAKEN OVER',
+        srNo:String(row[0]).trim(),
+        stationFrom:String(row[2]||'').trim(), stationTo:String(row[3]||'').trim(),
+        locoNo:String(row[11]||'').trim(), loadLocn:String(row[13]||'').trim(),
+        stts:'', fc:'', ic, status: ic==='Y'?'passed':'pending'
+      };
+      allTrains.push(rec);
+      if (ic==='Y') { finalSummary[zn].takenPassed++; zoneSummary[parentZone].takenPassed++; }
+      else { finalSummary[zn].takenPending++; zoneSummary[parentZone].takenPending++; pendingTakenTrainsGlobal.push(rec); }
+    }
+    if (String(row[21]||'').trim() !== '') {
+      const ic = cleanYesNo(row[38]);
+      finalSummary[zn].handTotal++;
+      zoneSummary[parentZone].handTotal++;
+      const rec = {
+        zone:zn, parentZone, direction:'DN', type:'HANDED OVER',
+        srNo:String(row[21]).trim(),
+        stationFrom:String(row[23]||'').trim(), stationTo:String(row[24]||'').trim(),
+        locoNo:String(row[32]||'').trim(), loadLocn:String(row[34]||'').trim(),
+        stts:'', fc:'', ic, status: ic==='Y'?'passed':'pending'
+      };
+      allTrains.push(rec);
+      if (ic==='Y') { finalSummary[zn].handPassed++; zoneSummary[parentZone].handPassed++; }
+      else { finalSummary[zn].handPending++; zoneSummary[parentZone].handPending++; pendingHandTrainsGlobal.push(rec); }
+    }
+  });
+  debug(`✅ NWR: ${Object.keys(finalSummary).length} zones processed`);
+}
+
+/* ===== GENERIC PROCESSOR (uses detected column indices) ===== */
+function processGeneric(rows, headers) {
+  debug(`📋 Processing Generic: ${rows.length} rows`);
+  // Find SR NO-like columns (first two columns often)
+  // For generic, we just try both: first column = UP sr, 22nd column = DN sr (best-effort)
+  const colSrUp = 0, colSrDn = 21;
+  const colUpFc = 17, colUpIc = 17;
+  const colDnFc = 38, colDnIc = 38;
+  let znCol = headers.findIndex(h => h.includes('ZN') || h.includes('ZONE') || h.includes('INTER'));
+  if (znCol === -1) znCol = 1; // fallback
+
+  rows.forEach(row => {
+    while (row.length < 45) row.push('');
+    let zn = String(row[znCol]||'').trim().toUpperCase();
+    if (!zn) zn = 'UNKNOWN';
+    const parentZone = ZONE_MAPPING[zn] || zn;
+    if (!finalSummary[zn]) finalSummary[zn] = {takenTotal:0,takenPassed:0,takenPending:0,handTotal:0,handPassed:0,handPending:0,parentZone};
+    if (!zoneSummary[parentZone]) zoneSummary[parentZone] = {takenTotal:0,takenPassed:0,takenPending:0,handTotal:0,handPassed:0,handPending:0};
+
+    if (String(row[colSrUp]||'').trim() !== '') {
+      const ic = cleanYesNo(row[colUpIc]);
+      finalSummary[zn].takenTotal++; zoneSummary[parentZone].takenTotal++;
+      const rec = {zone:zn,parentZone,direction:'UP',type:'TAKEN OVER',srNo:String(row[colSrUp]).trim(),stationFrom:String(row[2]||'').trim(),stationTo:String(row[3]||'').trim(),locoNo:String(row[11]||'').trim(),loadLocn:String(row[13]||'').trim(),stts:'',fc:'',ic,status:ic==='Y'?'passed':'pending'};
+      allTrains.push(rec);
+      if (ic==='Y') { finalSummary[zn].takenPassed++; zoneSummary[parentZone].takenPassed++; }
+      else { finalSummary[zn].takenPending++; zoneSummary[parentZone].takenPending++; pendingTakenTrainsGlobal.push(rec); }
+    }
+    if (String(row[colSrDn]||'').trim() !== '') {
+      const ic = cleanYesNo(row[colDnIc]);
+      finalSummary[zn].handTotal++; zoneSummary[parentZone].handTotal++;
+      const rec = {zone:zn,parentZone,direction:'DN',type:'HANDED OVER',srNo:String(row[colSrDn]).trim(),stationFrom:String(row[23]||'').trim(),stationTo:String(row[24]||'').trim(),locoNo:String(row[32]||'').trim(),loadLocn:String(row[34]||'').trim(),stts:'',fc:'',ic,status:ic==='Y'?'passed':'pending'};
+      allTrains.push(rec);
+      if (ic==='Y') { finalSummary[zn].handPassed++; zoneSummary[parentZone].handPassed++; }
+      else { finalSummary[zn].handPending++; zoneSummary[parentZone].handPending++; pendingHandTrainsGlobal.push(rec); }
+    }
+  });
+}
+
+/* ========================================================
+   FILTERS
+======================================================== */
+function populateInterchangeFilter() {
+  const sel = document.getElementById('filterInterchange');
+  sel.innerHTML = '<option value="ALL">All Interchanges</option>';
+  const zones = [...new Set(allTrains.map(t => t.zone))].sort();
+  zones.forEach(z => {
+    const o = document.createElement('option');
+    o.value = z; o.textContent = z;
+    sel.appendChild(o);
+  });
+}
+
+function applyFilters() {
+  const ic = document.getElementById('filterInterchange').value;
+  const dir = document.getElementById('filterDirection').value;
+  const q = document.getElementById('searchBox').value.trim().toLowerCase();
+  const filtered = allTrains.filter(t => {
+    if (ic !== 'ALL' && t.zone !== ic) return false;
+    if (dir !== 'ALL' && t.direction !== dir) return false;
+    if (q && !((t.locoNo+' '+t.stationFrom+' '+t.stationTo+' '+t.loadLocn).toLowerCase().includes(q))) return false;
+    return true;
+  });
+  // Recompute summary from filtered
+  finalSummary = {};
+  zoneSummary = {};
+  pendingTakenTrainsGlobal = [];
+  pendingHandTrainsGlobal = [];
+  filtered.forEach(t => {
+    const zn = t.zone, pz = t.parentZone;
+    if (!finalSummary[zn]) finalSummary[zn] = {takenTotal:0,takenPassed:0,takenPending:0,handTotal:0,handPassed:0,handPending:0,parentZone:pz};
+    if (!zoneSummary[pz]) zoneSummary[pz] = {takenTotal:0,takenPassed:0,takenPending:0,handTotal:0,handPassed:0,handPending:0};
+    if (t.direction==='UP') {
+      finalSummary[zn].takenTotal++; zoneSummary[pz].takenTotal++;
+      if (t.ic==='Y') { finalSummary[zn].takenPassed++; zoneSummary[pz].takenPassed++; }
+      else { finalSummary[zn].takenPending++; zoneSummary[pz].takenPending++; pendingTakenTrainsGlobal.push(t); }
+    } else {
+      finalSummary[zn].handTotal++; zoneSummary[pz].handTotal++;
+      if (t.ic==='Y') { finalSummary[zn].handPassed++; zoneSummary[pz].handPassed++; }
+      else { finalSummary[zn].handPending++; zoneSummary[pz].handPending++; pendingHandTrainsGlobal.push(t); }
+    }
+  });
+  renderAll();
+}
+
+/* ========================================================
+   RENDER
+======================================================== */
+function renderAll() {
+  renderForecastStats();
+  renderForecastSection();
+  identifyOptimizationOpportunities();
+  renderCharts();
+  createDetailTable();
+  createAIAnalysis();
+  renderPendingTrainLists();
+  renderOverallStats();
+}
+
+function renderForecastStats() {
+  let takenPassed=0, handPassed=0, takenTotal=0, handTotal=0, pending=0;
+  Object.values(zoneSummary).forEach(z => {
+    takenPassed+=z.takenPassed; handPassed+=z.handPassed;
+    takenTotal+=z.takenTotal; handTotal+=z.handTotal;
+    pending += z.takenPending + z.handPending;
+  });
+  const totalPassed = takenPassed+handPassed;
+  const totalAll = takenTotal+handTotal;
+  const eff = totalAll>0?((totalPassed/totalAll)*100).toFixed(1):0;
+  const netVar = handPassed - takenPassed;
+
+  document.getElementById('forecastStats').innerHTML = `
+    <div class="stat-card blue fade-in delay-1">
+      <div class="stat-header"><div><div class="stat-label">Total Passed</div><div class="stat-value">${totalPassed}</div></div><div class="stat-icon">🚂</div></div>
+      <div class="stat-meta"><span class="stat-meta-item">📊 <strong>${eff}%</strong> Eff.</span><span class="stat-meta-item">of <strong>${totalAll}</strong></span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${eff}%"></div></div>
+    </div>
+    <div class="stat-card green fade-in delay-2">
+      <div class="stat-header"><div><div class="stat-label">T/O Passed</div><div class="stat-value">${takenPassed}</div></div><div class="stat-icon green">📤</div></div>
+      <div class="stat-meta">✅ IC=Y basis</div>
+    </div>
+    <div class="stat-card cyan fade-in delay-3">
+      <div class="stat-header"><div><div class="stat-label">H/O Passed</div><div class="stat-value">${handPassed}</div></div><div class="stat-icon cyan">📥</div></div>
+      <div class="stat-meta">✅ IC=Y basis</div>
+    </div>
+    <div class="stat-card ${netVar>=0?'green':'red'} fade-in delay-4">
+      <div class="stat-header"><div><div class="stat-label">Net Variation</div><div class="stat-value ${netVar>=0?'text-positive':'text-negative'}">${netVar>0?'+':''}${netVar}</div></div><div class="stat-icon ${netVar>=0?'green':'red'}">📈</div></div>
+      <div class="stat-meta">H/O - T/O</div>
+    </div>
+  `;
+  document.getElementById('forecastStats').style.display = 'grid';
+  document.getElementById('forecastSection').style.display = 'block';
+  document.getElementById('aiSummary').style.display = 'block';
+}
+
+function renderForecastSection() {
+  const zones = detectedFormat==='DFC' ? TARGET_INTERCHANGES : ['DFCR','NCR','NR','WCR','WR'];
+  let rows = '', totalT=0, totalH=0;
+  zones.forEach(z => {
+    const d = zoneSummary[z] || {takenPassed:0,handPassed:0};
+    const nv = d.handPassed - d.takenPassed;
+    const eff = (d.takenPassed+d.handPassed)>0 ? ((d.handPassed/Math.max(d.takenPassed,1))*100).toFixed(0) : 0;
+    const stat = nv>0?'↑ IMPROVING':nv<0?'↓ NEEDS ATTN':'→ STABLE';
+    const cls = nv>0?'text-positive':nv<0?'text-negative':'text-warning';
+    totalT += d.takenPassed; totalH += d.handPassed;
+    rows += `<tr><td><span class="zone-pill">${z}</span></td><td><strong>${d.takenPassed}</strong></td><td><strong>${d.handPassed}</strong></td><td class="${cls}">${nv>0?'+':''}${nv}</td><td>${eff}%</td><td class="${cls}">${stat}</td></tr>`;
+  });
+  const netTot = totalH - totalT;
+  rows += `<tr class="total-row"><td><strong>TOTAL</strong></td><td><strong>${totalT}</strong></td><td><strong>${totalH}</strong></td><td class="${netTot>=0?'text-positive':'text-negative'}"><strong>${netTot>0?'+':''}${netTot}</strong></td><td>—</td><td>—</td></tr>`;
+  document.getElementById('forecastTableBody').innerHTML = rows;
+}
+
+function renderCharts() {
+  const zones = detectedFormat==='DFC' ? TARGET_INTERCHANGES : ['DFCR','NCR','NR','WCR','WR'];
+  const tData = zones.map(z => zoneSummary[z]?.takenPassed||0);
+  const hData = zones.map(z => zoneSummary[z]?.handPassed||0);
+
+  // Forecast chart
+  if (forecastChartInstance) forecastChartInstance.destroy();
+  const ctx1 = document.getElementById('forecastChart');
+  if (ctx1) {
+    forecastChartInstance = new Chart(ctx1, {
+      type:'bar',
+      data:{labels:zones, datasets:[
+        {label:'T/O Passed',data:tData,backgroundColor:'#3b82f6',borderRadius:6},
+        {label:'H/O Passed',data:hData,backgroundColor:'#10b981',borderRadius:6}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#d1d5db'}}},scales:{x:{ticks:{color:'#9ca3af'},grid:{color:'rgba(255,255,255,0.05)'}},y:{ticks:{color:'#9ca3af'},grid:{color:'rgba(255,255,255,0.05)'},beginAtZero:true}}}
+    });
+  }
+  // Zone chart
+  if (zoneChartInstance) zoneChartInstance.destroy();
+  const zn = Object.keys(finalSummary).slice(0,15);
+  const tt = zn.map(z => finalSummary[z]?.takenTotal||0);
+  const ht = zn.map(z => finalSummary[z]?.handTotal||0);
+  const ctx2 = document.getElementById('zoneChart');
+  if (ctx2) {
+    zoneChartInstance = new Chart(ctx2, {
+      type:'line',
+      data:{labels:zn, datasets:[
+        {label:'Taken Over',data:tt,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.1)',tension:0.4,fill:true},
+        {label:'Handed Over',data:ht,borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.1)',tension:0.4,fill:true}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#d1d5db'}}},scales:{x:{ticks:{color:'#9ca3af'},grid:{color:'rgba(255,255,255,0.05)'}},y:{ticks:{color:'#9ca3af'},grid:{color:'rgba(255,255,255,0.05)'},beginAtZero:true}}}
+    });
+  }
+}
+
+function identifyOptimizationOpportunities() {
+  const opps = [];
+  const avgSource = detectedFormat==='DFC' ? DFC_AVG : avgTrainData;
+
+  for (let zn in finalSummary) {
+    const z = finalSummary[zn];
+    const avg = detectedFormat==='DFC'
+      ? {takenAvg: avgSource[zn]?.to||0, handAvg: avgSource[zn]?.ho||0}
+      : (avgSource[zn] || {takenAvg:0, handAvg:0});
+
+    const tOpp = (avg.takenAvg>0 && z.takenTotal>avg.takenAvg) || (z.takenTotal>0 && avg.takenAvg===0);
+    const hOpp = (avg.handAvg>0 && z.handTotal>avg.handAvg) || (z.handTotal>0 && avg.handAvg===0);
+    if (!tOpp && !hOpp) continue;
+
+    let priority='LOW', totalEx=0;
+    if (tOpp) { const e = z.takenTotal-avg.takenAvg; totalEx+=e; if(e>10)priority='URGENT'; else if(e>5)priority='HIGH'; else if(e>2)priority='MEDIUM'; }
+    if (hOpp) { const e = z.handTotal-avg.handAvg; totalEx+=e; if(e>10&&priority!=='URGENT')priority='URGENT'; else if(e>5&&priority!=='URGENT')priority='HIGH'; else if(e>2&&priority==='LOW')priority='MEDIUM'; }
+
+    opps.push({
+      zone:zn, takenTotal:z.takenTotal, takenPending:z.takenPending, takenAvg:avg.takenAvg, takenVariance:(z.takenTotal-avg.takenAvg).toFixed(1), takenOpp:tOpp,
+      handTotal:z.handTotal, handPending:z.handPending, handAvg:avg.handAvg, handVariance:(z.handTotal-avg.handAvg).toFixed(1), handOpp:hOpp,
+      totalExcess:totalEx.toFixed(1), priority, pendingTotal:z.takenPending+z.handPending
+    });
+  }
+  opps.sort((a,b)=>parseFloat(b.totalExcess)-parseFloat(a.totalExcess));
+  allOpportunities = opps;
+
+  const sec = document.getElementById('opportunitySection');
+  const grid = document.getElementById('opportunityGrid');
+  if (opps.length === 0) { sec.style.display='none'; return; }
+  sec.style.display='block';
+  document.getElementById('navOppCount').textContent = opps.length;
+
+  grid.innerHTML = opps.map(o => {
+    const cls = o.priority.toLowerCase();
+    return `<div class="opp-card ${cls}" data-priority="${o.priority}">
+      <div class="opp-zone-name"><span>📍 ${o.zone}</span><span class="priority-badge priority-${cls}">${o.priority}</span></div>
+      <div class="opp-metrics">
+        ${o.takenOpp?`<div class="metric-box"><div class="metric-label">📤 Taken Over</div><div class="metric-value">${o.takenTotal}</div><div class="metric-comparison">Avg: ${o.takenAvg} • <span class="positive">▲ +${o.takenVariance}</span></div><div style="margin-top:4px;font-size:10px;color:#f59e0b;">⏳ ${o.takenPending}</div></div>`:''}
+        ${o.handOpp?`<div class="metric-box"><div class="metric-label">📥 Handed Over</div><div class="metric-value">${o.handTotal}</div><div class="metric-comparison">Avg: ${o.handAvg} • <span class="positive">▲ +${o.handVariance}</span></div><div style="margin-top:4px;font-size:10px;color:#f59e0b;">⏳ ${o.handPending}</div></div>`:''}
+      </div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border-color);font-size:11px;color:var(--text-secondary);">
+        💡 ${o.priority==='URGENT'?'⚠️ Immediate attention required':o.priority==='HIGH'?'📌 Prioritize clearance':o.priority==='MEDIUM'?'  Schedule additional shifts':'✅ Maintain current pace'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterOpportunities(p, el) {
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.opp-card').forEach(c=>{ c.style.display = (p==='all'||c.dataset.priority===p)?'':'none'; });
+}
+
+function createDetailTable() {
+  let html = `<table class="modern-table"><thead><tr>
+    <th rowspan="2">ZONE</th>
+    <th colspan="5" style="background:rgba(59,130,246,0.2);">TAKEN OVER</th>
+    <th colspan="5" style="background:rgba(16,185,129,0.2);">HANDED OVER</th></tr>
+    <tr><th>TOTAL</th><th>PASSED</th><th>PENDING</th><th>AVG</th><th>VAR</th>
+        <th>TOTAL</th><th>PASSED</th><th>PENDING</th><th>AVG</th><th>VAR</th></tr></thead><tbody>`;
+
+  const avgSrc = detectedFormat==='DFC' ? DFC_AVG : avgTrainData;
+  let tT=0,tP=0,tPe=0,hT=0,hP=0,hPe=0;
+
+  for (let zn in finalSummary) {
+    const z = finalSummary[zn];
+    const avg = detectedFormat==='DFC' ? {takenAvg:avgSrc[zn]?.to||0, handAvg:avgSrc[zn]?.ho||0} : (avgSrc[zn]||{takenAvg:0,handAvg:0});
+    const tVar = avg.takenAvg>0?(z.takenTotal-avg.takenAvg).toFixed(1):(z.takenTotal>0?'+'+z.takenTotal:'0');
+    const hVar = avg.handAvg>0?(z.handTotal-avg.handAvg).toFixed(1):(z.handTotal>0?'+'+z.handTotal:'0');
+    const isOpp = (avg.takenAvg>0&&z.takenTotal>avg.takenAvg)||(avg.handAvg>0&&z.handTotal>avg.handAvg);
+    const style = isOpp?'background:rgba(245,158,11,0.08);':'';
+    const tDisp = (avg.takenAvg>0&&z.takenTotal>avg.takenAvg)?`+${tVar}`:tVar;
+    const hDisp = (avg.handAvg>0&&z.handTotal>avg.handAvg)?`+${hVar}`:hVar;
+
+    tT+=z.takenTotal; tP+=z.takenPassed; tPe+=z.takenPending;
+    hT+=z.handTotal; hP+=z.handPassed; hPe+=z.handPending;
+
+    html += `<tr style="${style}"><td><strong>${zn}</strong></td>
+      <td>${z.takenTotal}</td><td class="text-positive">${z.takenPassed}</td><td class="text-warning">${z.takenPending}</td><td>${avg.takenAvg>0?avg.takenAvg:'-'}</td><td class="${z.takenTotal>avg.takenAvg&&avg.takenAvg>0?'text-warning':''}">${tDisp}</td>
+      <td>${z.handTotal}</td><td class="text-positive">${z.handPassed}</td><td class="text-warning">${z.handPending}</td><td>${avg.handAvg>0?avg.handAvg:'-'}</td><td class="${z.handTotal>avg.handAvg&&avg.handAvg>0?'text-warning':''}">${hDisp}</td></tr>`;
+  }
+  html += `<tr class="total-row"><td><strong>TOTAL</strong></td><td><strong>${tT}</strong></td><td><strong>${tP}</strong></td><td><strong>${tPe}</strong></td><td>-</td><td>-</td><td><strong>${hT}</strong></td><td><strong>${hP}</strong></td><td><strong>${hPe}</strong></td><td>-</td><td>-</td></tr>`;
+  html += `</tbody></table>`;
+  document.getElementById('tableWrapper').innerHTML = html;
+  document.getElementById('zoneAnalysisSection').style.display = 'block';
+}
+
+function createAIAnalysis() {
+  let totalP=0, oppP=0;
+  for (let zn in finalSummary) {
+    const p = finalSummary[zn].takenPending+finalSummary[zn].handPending;
+    totalP += p;
+    const avg = detectedFormat==='DFC' ? {takenAvg:DFC_AVG[zn]?.to||0, handAvg:DFC_AVG[zn]?.ho||0} : (avgTrainData[zn]||{takenAvg:0,handAvg:0});
+    if ((avg.takenAvg>0&&finalSummary[zn].takenTotal>avg.takenAvg)||(avg.handAvg>0&&finalSummary[zn].handTotal>avg.handAvg)) oppP+=p;
+  }
+  const totTrains = Object.values(finalSummary).reduce((a,b)=>a+b.takenTotal+b.handTotal,0);
+  const totPassed = Object.values(finalSummary).reduce((a,b)=>a+b.takenPassed+b.handPassed,0);
+  const eff = totTrains>0?((totPassed/totTrains)*100).toFixed(1):0;
+
+  document.getElementById('aiSummary').innerHTML = `
+    <div class="panel-header"><div class="panel-title"><span class="panel-title-icon">🤖</span>AI Insights & Recommendations</div></div>
+    <div class="stats-grid">
+      <div class="stat-card orange"><div class="stat-header"><div><div class="stat-label">High Traffic</div><div class="stat-value">${allOpportunities.length}</div></div><div class="stat-icon orange">⚡</div></div><div class="stat-meta">Above average</div></div>
+      <div class="stat-card red"><div class="stat-header"><div><div class="stat-label">Pending (High)</div><div class="stat-value">${oppP}</div></div><div class="stat-icon red">🚨</div></div><div class="stat-meta">Needs clearance</div></div>
+      <div class="stat-card green"><div class="stat-header"><div><div class="stat-label">Efficiency</div><div class="stat-value">${eff}%</div></div><div class="stat-icon green"> </div></div><div class="stat-meta">${totPassed} of ${totTrains}</div></div>
+    </div>
+    <div class="insight-card"><div class="insight-title">💡 Optimization Strategy</div><div class="insight-text">
+      ${allOpportunities.length>0?`🎯 <strong>${allOpportunities.length}</strong> sections exceeding average. Clear <strong>${oppP}</strong> pending trains (IC=N).
+      Prioritize <strong>${allOpportunities.filter(o=>o.priority==='URGENT').length}</strong> URGENT sections first.`:`✅ All zones within average. Continue monitoring.`}
+    </div></div>
+    <div class="insight-card"><div class="insight-title">📊 Key Metrics</div><div class="insight-text">
+      • Total: <strong>${totTrains}</strong> trains<br>• Passed: <strong>${totPassed}</strong><br>• Pending: <strong>${totalP}</strong><br>• Efficiency: <strong>${eff}%</strong><br>• Format: <strong>${detectedFormat}</strong>
+    </div></div>
+  `;
+}
+
+function renderPendingTrainLists() {
+  document.getElementById('takenPendingCount').textContent = pendingTakenTrainsGlobal.length;
+  document.getElementById('handPendingCount').textContent = pendingHandTrainsGlobal.length;
+  document.getElementById('navPendingCount').textContent = pendingTakenTrainsGlobal.length + pendingHandTrainsGlobal.length;
+
+  const buildTable = arr => arr.length===0 ? `<div class="empty-state"><div class="icon">✅</div><div class="title">All Clear!</div></div>` :
+    `<div class="modern-table-wrapper" style="max-height:380px;overflow-y:auto;"><table class="modern-table"><thead><tr><th>ZONE</th><th>FROM</th><th>TO</th><th>LOCO</th><th>LOCN</th><th>IC</th></tr></thead><tbody>`+
+    arr.slice(0,50).map(t=>`<tr><td><strong>${t.zone}</strong></td><td>${t.stationFrom}</td><td>${t.stationTo}</td><td>${t.locoNo||'N/A'}</td><td>${t.loadLocn||'—'}</td><td><span class="text-negative">${t.ic||'N'}</span></td></tr>`).join('')+
+    `</tbody></table></div>`+(arr.length>50?`<div style="text-align:center;padding:8px;color:var(--text-muted);font-size:11px;">Showing 50 of ${arr.length}. Export to see all.</div>`:'');
+
+  document.getElementById('takenPendingTable').innerHTML = buildTable(pendingTakenTrainsGlobal);
+  document.getElementById('handPendingTable').innerHTML = buildTable(pendingHandTrainsGlobal);
+  document.getElementById('pendingTrainsContainer').style.display = 'block';
+}
+
+function renderOverallStats() {
+  let tT=0,tP=0,tPe=0,hT=0,hP=0,hPe=0;
+  for (let zn in finalSummary) { tT+=finalSummary[zn].takenTotal; tP+=finalSummary[zn].takenPassed; tPe+=finalSummary[zn].takenPending; hT+=finalSummary[zn].handTotal; hP+=finalSummary[zn].handPassed; hPe+=finalSummary[zn].handPending; }
+  const tot=tT+hT, passed=tP+hP, rem=tPe+hPe;
+  const eff = tot>0?((passed/tot)*100).toFixed(1):0;
+  document.getElementById('overallStats').innerHTML = `
+    <div class="stat-card blue"><div class="stat-header"><div><div class="stat-label">Total</div><div class="stat-value">${tot}</div></div><div class="stat-icon">🚂</div></div><div class="stat-meta">T/O: ${tT} • H/O: ${hT}</div></div>
+    <div class="stat-card green"><div class="stat-header"><div><div class="stat-label">Passed</div><div class="stat-value">${passed}</div></div><div class="stat-icon green">✅</div></div><div class="stat-meta">T/O: ${tP} • H/O: ${hP}</div></div>
+    <div class="stat-card orange"><div class="stat-header"><div><div class="stat-label">Pending</div><div class="stat-value">${rem}</div></div><div class="stat-icon orange">⏳</div></div><div class="stat-meta">T/O: ${tPe} • H/O: ${hPe}</div></div>
+    <div class="stat-card purple"><div class="stat-header"><div><div class="stat-label">Efficiency</div><div class="stat-value">${eff}%</div></div><div class="stat-icon purple">📈</div></div><div class="progress-bar"><div class="progress-fill" style="width:${eff}%"></div></div></div>
+  `;
+}
+
+/* ========================================================
+   EXPORT
+======================================================== */
+function exportExcel() {
+  if (Object.keys(finalSummary).length===0) { showToast('No data to export','warning'); return; }
+  const wb = XLSX.utils.book_new();
+  const now = new Date(); const d=now.toLocaleDateString('en-IN'); const t=now.toLocaleTimeString('en-IN');
+
+  // Sheet 1: Forecast
+  let fc=[['FORECAST SUMMARY (Passed = IC=Y)','','',''],['DATE:',d,'TIME:',t],['','','',''],['ZONE','T/O PASSED ↓','H/O PASSED ↑','NET VARIATION']];
+  const zones = detectedFormat==='DFC'?TARGET_INTERCHANGES:['DFCR','NCR','NR','WCR','WR'];
+  let tt=0,hh=0;
+  zones.forEach(z=>{ const d=zoneSummary[z]||{takenPassed:0,handPassed:0}; fc.push([z,d.takenPassed,d.handPassed,d.handPassed-d.takenPassed]); tt+=d.takenPassed; hh+=d.handPassed; });
+  fc.push(['TOTAL',tt,hh,hh-tt]);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(fc), 'Forecast_Summary');
+
+  // Sheet 2: Detail by Interchange
+  const detail = allTrains.map(t=>({Direction:t.direction,Type:t.type,'SR NO':t.srNo,Interchange:t.zone,'From':t.stationFrom,'To':t.stationTo,Loco:t.locoNo,Location:t.loadLocn,FC:t.fc,IC:t.ic,Status:t.status.toUpperCase()}));
+  if (detail.length>0) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(detail), 'Detail_by_Interchange');
+
+  // Sheet 3: Overall Summary
+  let totTrains=0, totPassed=0, totPending=0;
+  for (let zn in finalSummary) { totTrains += finalSummary[zn].takenTotal+finalSummary[zn].handTotal; totPassed += finalSummary[zn].takenPassed+finalSummary[zn].handPassed; totPending += finalSummary[zn].takenPending+finalSummary[zn].handPending; }
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([
+    {Metric:'Format Detected',Value:detectedFormat},
+    {Metric:'Total Trains',Value:totTrains},
+    {Metric:'Total Passed',Value:totPassed},
+    {Metric:'Total Pending',Value:totPending},
+    {Metric:'Efficiency %',Value:totTrains>0?((totPassed/totTrains)*100).toFixed(1):'0'},
+    {Metric:'Opportunities',Value:allOpportunities.length},
+    {Metric:'Generated',Value:`${d} ${t}`}
+  ]), 'Overall_Summary');
+
+  // Sheet 4: Opportunities
+  if (allOpportunities.length>0) {
+    const opp = [];
+    allOpportunities.forEach(o=>{
+      if (o.takenOpp) opp.push({Zone:o.zone,Section:'TAKEN OVER',Total:o.takenTotal,Avg:o.takenAvg,Variance:`+${o.takenVariance}`,Pending:o.takenPending,Priority:o.priority});
+      if (o.handOpp) opp.push({Zone:o.zone,Section:'HANDED OVER',Total:o.handTotal,Avg:o.handAvg,Variance:`+${o.handVariance}`,Pending:o.handPending,Priority:o.priority});
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(opp), 'Opportunities');
+  }
+
+  // Sheet 5: Pending Trains
+  const pend = [...pendingTakenTrainsGlobal, ...pendingHandTrainsGlobal].map(t=>({Direction:t.direction,Type:t.type,Zone:t.zone,'From':t.stationFrom,'To':t.stationTo,Loco:t.locoNo,Location:t.loadLocn,IC:t.ic}));
+  if (pend.length>0) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(pend), 'Pending_Trains');
+
+  XLSX.writeFile(wb, `${detectedFormat}_Interchange_${d.replace(/\//g,'-')}.xlsx`);
+  showToast('✅ Excel exported!','success');
+}
+
+function exportCSV() {
+  if (Object.keys(finalSummary).length===0) { showToast('No data','warning'); return; }
+  let csv = 'ZONE,Taken Total,Taken Passed,Taken Pending,Hand Total,Hand Passed,Hand Pending\n';
+  for (let zn in finalSummary) csv += `${zn},${finalSummary[zn].takenTotal},${finalSummary[zn].takenPassed},${finalSummary[zn].takenPending},${finalSummary[zn].handTotal},${finalSummary[zn].handPassed},${finalSummary[zn].handPending}\n`;
+  const blob = new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=`Report_${new Date().toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(url);
+  showToast('✅ CSV exported','success');
+}
+
+/* ========================================================
+   SAMPLE DATA
+======================================================== */
+function loadNWRSample() {
+  debug('📋 Loading NWR sample...');
+  // 39-column NWR-like data with ZN-STTN
+  const sample = [
+    ['SR NO','col','STN FROM','STN TO','c','d','e','f','g','h','i','j','LOCO','k','LOAD','m','n','o','p','q','r','s','SR NO2','t','u','v','w','x','y','z','a1','b1','c1','d1','LOCO2','e1','LOAD2','f1','g1','h1'],
+    ['1','x','NDLS','CNB','a','b','c','d','e','f','g','h','i','j','CNB','k','l','m','Y','n','o','p','1','x','CNB','NDLS','a','b','c','d','e','f','g','h','40001','i','NDLS','j','k','l','Y'],
+    ['2','x','CNB','PRYJ','a','b','c','d','e','f','g','h','i','j','ALD','k','l','m','N','n','o','p','','','','','','','','','','','','','','','','',''],
+    ['3','x','PRYJ','CNB','a','b','c','d','e','f','g','h','i','j','PRYJ','k','l','m','Y','n','o','p','1','x','CNB','PRYJ','a','b','c','d','e','f','g','h','40002','i','CNB','j','k','l','Y'],
+    ['4','x','NDLS','ALD','a','b','c','d','e','f','g','h','i','j','CNB','k','l','m','N','n','o','p','','','','','','','','','','','','','','','',''],
+    ['5','x','NDLS','PRYJ','a','b','c','d','e','f','g','h','i','j','ALD','k','l','m','Y','n','o','p','1','x','PRYJ','NDLS','a','b','c','d','e','f','g','h','40003','i','PRYJ','j','k','l','Y'],
+    ['6','x','PRYJ','NDLS','a','b','c','d','e','f','g','h','i','j','PRYJ','k','l','m','Y','n','o','p','2','x','NDLS','PRYJ','a','b','c','d','e','f','g','h','40004','i','NDLS','j','k','l','Y'],
+    ['7','x','NDLS','CNB','a','b','c','d','e','f','g','h','i','j','CNB','k','l','m','N','n','o','p','','','','','','','','','','','','','','',''],
+    ['8','x','CNB','NDLS','a','b','c','d','e','f','g','h','i','j','CNB','k','l','m','N','n','o','p','','','','','','','','','','','','','','',''],
+    ['9','x','ALD','NDLS','a','b','c','d','e','f','g','h','i','j','ALD','k','l','m','Y','n','o','p','','','','','','','','','','','','','','','']
+  ];
+  document.getElementById('loading').classList.add('show');
+  setTimeout(()=>processData(sample),300);
+}
+
+function loadDFCSample() {
+  debug('📋 Loading DFC sample...');
+  const sample = [
+    ['1','x','NDLS','CNB','a','b','c','d','e','f','g','h','i','30001','j','k','l','m','n','o','CNB','12:30','p','N','Y','DLI-AST','1','x','CNB','NDLS','a','b','c','d','e','f','g','h','i','40001','j','k','l','m','n','o','NDLS','14:00','p','N','Y'],
+    ['2','x','CNB','PRYJ','a','b','c','d','e','f','g','h','i','30002','j','k','l','m','n','o','ALD','08:15','p','N','Y','DLI-AST','','','','','','','','','','','','','','','','','','','','','','','','','','',''],
+    ['3','x','PRYJ','CNB','a','b','c','d','e','f','g','h','i','30003','j','k','l','m','n','o','PRYJ','09:45','p','Y','Y','DLI-PRLN','1','x','CNB','PRYJ','a','b','c','d','e','f','g','h','i','40002','j','k','l','m','n','o','CNB','10:00','p','Y','Y'],
+    ['4','x','NDLS','ALD','a','b','c','d','e','f','g','h','i','30004','j','k','l','m','n','o','CNB','11:20','p','Y','N','DLI-PRLN','','','','','','','','','','','','','','','','','','','','','','','','','','',''],
+    ['5','x','NDLS','PRYJ','a','b','c','d','e','f','g','h','i','30005','j','k','l','m','n','o','ALD','13:00','p','Y','N','EDFC-DERN','1','x','PRYJ','NDLS','a','b','c','d','e','f','g','h','i','40003','j','k','l','m','n','o','PRYJ','15:30','p','Y','Y'],
+    ['6','x','PRYJ','NDLS','a','b','c','d','e','f','g','h','i','30006','j','k','l','m','n','o','PRYJ','07:30','p','Y','Y','EDFC-DERN','2','x','NDLS','PRYJ','a','b','c','d','e','f','g','h','i','40004','j','k','l','m','n','o','NDLS','16:45','p','Y','Y'],
+    ['7','x','NDLS','CNB','a','b','c','d','e','f','g','h','i','30007','j','k','l','m','n','o','CNB','06:00','p','Y','N','EDFC-DERN','','','','','','','','','','','','','','','','','','','','','','','','','','',''],
+    ['8','x','CNB','NDLS','a','b','c','d','e','f','g','h','i','30008','j','k','l','m','n','o','CNB','18:00','p','Y','N','EDFC-DERN','','','','','','','','','','','','','','','','','','','','','','','','','',''],
+    ['9','x','ALD','NDLS','a','b','c','d','e','f','g','h','i','30009','j','k','l','m','n','o','ALD','19:30','p','Y','Y','EDFC-DERN','','','','','','','','','','','','','','','','','','','','','','','','','','',''],
+    ['10','x','NDLS','PRYJ','a','b','c','d','e','f','g','h','i','30010','j','k','l','m','n','o','NDLS','20:00','p','Y','N','PRYJ-DER','1','x','PRYJ','NDLS','a','b','c','d','e','f','g','h','i','40005','j','k','l','m','n','o','PRYJ','21:00','p','Y','N'],
+    ['11','x','CNB','PRYJ','a','b','c','d','e','f','g','h','i','30011','j','k','l','m','n','o','CNB','05:30','p','Y','Y','PRYJ-DER','2','x','NDLS','CNB','a','b','c','d','e','f','g','h','i','40006','j','k','l','m','n','o','NDLS','06:30','p','Y','Y'],
+    ['12','x','PRYJ','CNB','a','b','c','d','e','f','g','h','i','30012','j','k','l','m','n','o','PRYJ','07:45','p','Y','Y','PRYJ-DER','','','','','','','','','','','','','','','','','','','','','','','','','','',''],
+    ['13','x','NDLS','CNB','a','b','c','d','e','f','g','h','i','30013','j','k','l','m','n','o','NDLS','08:00','p','Y','Y','PRYJ-DER','','','','','','','','','','','','','','','','','','','','','','','','','','','']
+  ];
+  document.getElementById('loading').classList.add('show');
+  setTimeout(()=>processData(sample),300);
+}
+
+/* ========================================================
+   MISC
+======================================================== */
+function filterTable() {
+  const q = document.getElementById('zoneSearch').value.toUpperCase();
+  document.querySelectorAll('#forecastTable tbody tr').forEach(r=>{ r.style.display = r.textContent.toUpperCase().includes(q)?'':'none'; });
+}
+function switchTableTab(t) {
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  event.target.classList.add('active');
+}
+function resetAll() {
+  finalSummary={}; pendingTakenTrainsGlobal=[]; pendingHandTrainsGlobal=[];
+  allOpportunities=[]; zoneSummary={}; allTrains=[]; detectedFormat='NONE';
+  ['forecastStats','forecastSection','opportunitySection','aiSummary','zoneAnalysisSection','pendingTrainsContainer','formatBanner'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('fileName').textContent='Choose CSV or Excel file...';
+  document.getElementById('csvFile').value='';
+  document.getElementById('navOppCount').textContent='0';
+  document.getElementById('navPendingCount').textContent='0';
+  if (forecastChartInstance) forecastChartInstance.destroy();
+  if (zoneChartInstance) zoneChartInstance.destroy();
+  showToast('🔄 Reset complete','info');
+}
+
+/* ========================================================
+   INIT
+======================================================== */
+loadAvgTrainData();
+setInterval(updateLiveDateTime, 1000);
+updateLiveDateTime();
+debug('🚀 Universal Optimizer v3.0 ready — supports NWR + DFC + Generic');
+</script>
+</body>
+</html>
