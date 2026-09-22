@@ -1,1 +1,4 @@
-PapaParse, XLSX, Chart.js
+streamlit
+PapaParse
+XLSX
+Chart.js
