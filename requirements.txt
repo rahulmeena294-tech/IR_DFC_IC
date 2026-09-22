@@ -1,4 +1,1 @@
 streamlit
-PapaParse
-XLSX
-Chart.js
